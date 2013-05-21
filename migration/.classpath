@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JDK6"/>
+	<classpathentry kind="lib" path="lib/async-http-client-1.7.4.jar"/>
+	<classpathentry kind="lib" path="lib/jcl-over-slf4j-1.6.4.jar"/>
+	<classpathentry kind="lib" path="lib/logback-classic-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/logback-core-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/netty-3.4.6.Final.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.6.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.jboss.ide.eclipse.as.core.server.runtime.runtimeTarget/JBoss 7.1 Runtime"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/net.bluemind.core.client"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/net.bluemind.core.common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/net.bluemind.locator.client"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
