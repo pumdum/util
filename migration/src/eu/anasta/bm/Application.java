@@ -183,7 +183,7 @@ public class Application {
 			for (Folder f : sourcefolder.list()) {
 				// sourcefolder = sourcestore.getFolder("INBOX");
 				if (f.getName().equals("Autres utilisateurs")
-						|| f.getName().equals("Dossiers partag�s")) {
+						|| f.getName().equals("Dossiers partagés")) {
 					continue;
 				}
 				copiesubFolder(f);
@@ -218,7 +218,7 @@ public class Application {
 			// Get a handle on the default folder
 			sourcestore.getPersonalNamespaces();
 			sourcefolder = sourcestore
-					.getFolder("Dossiers partag�s/" + mailbox);
+					.getFolder("Dossiers partagés/" + mailbox);
 			copiesubFolder(sourcefolder);
 			System.out.println("other mb?");
 			mailbox = in.nextLine();
