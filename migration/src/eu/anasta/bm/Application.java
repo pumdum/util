@@ -112,7 +112,7 @@ public class Application {
 		LinkedList<String> listtoUpdated = new LinkedList<String>();
 		String next = null;
 		// first create all user and in list to synchro calendar after
-		List<User> users = getUser(sUserClient, sadmin0Pass);
+		List<User> users = getUser(sUserClient, sadmin0Pass, domaine);
 		for (User sUser : users) {
 			System.out.println("migrate " + sUser.getDisplayName() + "? Y/N/S");
 			next = in.nextLine();
@@ -124,7 +124,7 @@ public class Application {
 			// String savePass = getcryptPass(sUser, sUserClient, sadmin0Pass);
 
 			System.out.println(sUser.getDisplayName());
-			User dUser = getUser(sUser.getLogin(), dUserClient, dadmin0Pass);
+			User dUser = getUser(sUser.getLogin(), dUserClient, dadmin0Pass, domaine);
 			if (dUser == null) {
 				dUser = createUser(sUser, dUserClient, dadmin0Pass, ddomain,
 						dhost);
@@ -384,11 +384,11 @@ public class Application {
 
 	}
 
-	private List<User> getUser(UserClient userClient, String password) {
+	private List<User> getUser(UserClient userClient, String password,String domain) {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		UserQuery q = new UserQuery();
-		q.setDomainName("anasta.eu");
+		q.setDomainName(domain);
 		ResultList<User> ul;
 		try {
 			ul = userClient.find(token, q);
@@ -407,11 +407,11 @@ public class Application {
 		return null;
 	}
 
-	private User getUser(String user, UserClient userClient, String password) {
+	private User getUser(String user, UserClient userClient, String password, String domain) {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		UserQuery q = new UserQuery();
-		q.setDomainName("anasta.eu");
+		q.setDomainName(domain);
 		q.setLogin(user);
 		ResultList<User> ul;
 		try {
