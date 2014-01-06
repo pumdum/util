@@ -1,6 +1,5 @@
 package eu.anasta.bm;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -36,8 +35,22 @@ import net.bluemind.core.client.mailshare.MailshareClient;
 import net.bluemind.core.client.system.SystemClient;
 import net.bluemind.core.client.user.UserClient;
 
-public class Application {
 
+public class OneShot {
+
+	String sInbox = "INBOX";
+	String dInbox = "INBOX";
+	String sDraft = "Brouillons";
+	String sJunks = "Pourriel";
+	String sJunksno = "non-pourriel-confirme";
+	String sJunks2 = "pourriel-confirme";
+	String sSent = "Objets envoy�s";
+	String sSent2 = "Envoy�s";
+	String sTrash = "Corbeille";
+	String dDraft = "Drafts";
+	String dJunks = "Junk";
+	String dSent = "Sent";
+	String dTrash = "Trash";
 
 	private CalendarClient sCalClient = null;
 	private MailClient sMailClient = null;
@@ -77,16 +90,17 @@ public class Application {
 	private SystemClient dsystemClient = null;
 
 	public static void main(String[] args) throws Exception {
-		Application app = new Application();
-		app.run();
+		OneShot app = new OneShot();
+//		app.clearFolder();
+		
 		// System.out.println("�a marche");
 	}
 
-	public void run() throws Exception {
-
+	public void clearFolder(){
 		Scanner in = new Scanner(System.in);
 		System.out.println("Domaine?");
 		domaine = in.nextLine();
+
 
 		System.out.println("source hostname?");
 		sHostName = in.nextLine();
@@ -95,140 +109,15 @@ public class Application {
 		sadmin0Pass = in.nextLine();
 		System.out.println("pass for admin@" + domaine + " on " + sHost + "?");
 		sadmindPass = in.nextLine();
-		System.out.println("dest hostname?");
-		dHostName = in.nextLine();
-		dHost = dHostName + "." + domaine;
-		System.out.println("pass for admin0 on " + sHost + "?");
-		dadmin0Pass = in.nextLine();
-		System.out.println("pass for admin@" + domaine + " on " + dHost + "?");
-		dadmindPass = in.nextLine();
 
-		initlocator();
+		System.out.println("user ?");
+		String user = in.nextLine();
 
-		Domain sdomain = getDomain(ssystemClient, sadmin0Pass);
-		Domain ddomain = getDomain(dsystemClient, dadmin0Pass);
-		Host shost = getHost(ssystemClient, sadmin0Pass, sHostName);
-		Host dhost = getHost(dsystemClient, dadmin0Pass, dHostName);
-		LinkedList<String> listtoUpdated = new LinkedList<String>();
-		String next = null;
-		// first create all user and in list to synchro calendar after
-		List<User> users = getUser(sUserClient, sadmin0Pass, domaine);
-		for (User sUser : users) {
-			System.out.println("migrate " + sUser.getDisplayName() + "? Y/N/S");
-			next = in.nextLine();
-			if (next.equals("N")) {
-				continue;
-			} else if (next.equals("S") || next.equals("")) {
-				break;
-			}
-//			 String savePass = getcryptPass(sUser, sUserClient, sadmin0Pass);
-
-			System.out.println(sUser.getDisplayName());
-			User dUser = getUser(sUser.getLogin(), dUserClient, dadmin0Pass, domaine);
-			if (dUser == null) {
-				dUser = createUser(sUser, dUserClient, dadmin0Pass, ddomain,
-						dhost);
-			}
-			// update old pass
-			updatepass(sUser, sUserClient, sadmin0Pass, "12345");
-			listtoUpdated.add(dUser.getDefaultEmail());
-		}
-		System.out.println("migrate user ended");
-//		for (String mailUset : listtoUpdated) {
-//
-//			importCalendar(mailUset, dCalClient, dadmin0Pass,
-//					exportCalendar(mailUset, sCalClient, sadmin0Pass));
-//		}
-		System.out.println("migrate calendar ended");
-
-//		for (String mailUset : listtoUpdated) {
-//
-//			List<net.bluemind.core.api.contact.Folder> folds = getAllFolder(
-//					mailUset, sBookClient, sadmin0Pass);
-//			for (net.bluemind.core.api.contact.Folder sf : folds) {
-//				if (sf.isWritable()) {
-//					net.bluemind.core.api.contact.Folder df = findFolder(
-//							mailUset, dBookClient, dadmin0Pass, sf.getName());
-//					importFolder(
-//							mailUset,
-//							dBookClient,
-//							dadmin0Pass,
-//							df,
-//							exportFolder(mailUset, sBookClient, sadmin0Pass, sf));
-//				}
-//			}
-//		}
-		System.out.println("migrate contact  ended");
-
-		for (String mailUser : listtoUpdated) {
-
-			session = Session.getDefaultInstance(System.getProperties(), null);
-
-			sourcestore = session.getStore("imap");
-			System.out.println("open on local");
-			String intputname;
-			String inputPas;
-			intputname = mailUser;
-			inputPas = "12345";
-			sourcestore.connect(sHost, intputname, inputPas);
-			System.out.println("open on dest");
-			deststore = session.getStore("imap");
-			intputname = mailUser;
-			inputPas = "12345";
-
-			deststore.connect(dHost, intputname, inputPas);
-
-			// Get a handle on the default folder
-			sourcefolder = sourcestore.getDefaultFolder();
-			for (Folder f : sourcefolder.list()) {
-				// sourcefolder = sourcestore.getFolder("INBOX");
-				if (f.getName().equals("Autres utilisateurs")
-						|| f.getName().equals("Dossiers partagés")) {
-					continue;
-				}
-				copiesubFolder(f);
-			}
-		}
-
-		String mailbox = "";
-		boolean cont = true;
-		System.out.println("other mb?");
-		mailbox = in.nextLine();
-		if (mailbox.equals("")) {
-			cont = false;
-		}
-		while (cont) {
-
-			session = Session.getDefaultInstance(System.getProperties(), null);
-
-			sourcestore = session.getStore("imap");
-			System.out.println("open on local");
-			String intputname;
-			String inputPas;
-			intputname = "admin@" + domaine;
-			inputPas = sadmindPass;
-			sourcestore.connect(sHost, intputname, inputPas);
-			System.out.println("open on dest");
-			deststore = session.getStore("imap");
-			intputname = "admin@" + domaine;
-			inputPas = dadmindPass;
-
-			deststore.connect(dHost, intputname, inputPas);
-
-			// Get a handle on the default folder
-			sourcestore.getPersonalNamespaces();
-			sourcefolder = sourcestore
-					.getFolder("Dossiers partagés/" + mailbox);
-			copiesubFolder(sourcefolder);
-			System.out.println("other mb?");
-			mailbox = in.nextLine();
-			if (mailbox.equals("")) {
-				cont = false;
-			}
-
-		}
-
+		System.out.println("folder to clear?");
+		String folder= in.nextLine();
+		clearFolder(user, folder);
 	}
+
 
 	private String exportCalendar(String user, CalendarClient calClient,
 			String password) {
@@ -384,11 +273,11 @@ public class Application {
 
 	}
 
-	private List<User> getUser(UserClient userClient, String password,String domain) {
+	private List<User> getUser(UserClient userClient, String password) {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		UserQuery q = new UserQuery();
-		q.setDomainName(domain);
+		q.setDomainName("anasta.eu");
 		ResultList<User> ul;
 		try {
 			ul = userClient.find(token, q);
@@ -407,11 +296,11 @@ public class Application {
 		return null;
 	}
 
-	private User getUser(String user, UserClient userClient, String password, String domain) {
+	private User getUser(String user, UserClient userClient, String password) {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		UserQuery q = new UserQuery();
-		q.setDomainName(domain);
+		q.setDomainName("anasta.eu");
 		q.setLogin(user);
 		ResultList<User> ul;
 		try {
@@ -538,7 +427,6 @@ public class Application {
 
 		// build webservice locator
 		String oldUrl = "https://" + sHost + "/services";
-		String newUrl = "https://" + dHost + "/services";
 		cl = new CalendarLocator();
 		// via l'url du serveur Blue Mind
 		this.sCalClient = cl.locate(oldUrl);

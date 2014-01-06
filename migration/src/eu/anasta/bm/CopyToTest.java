@@ -36,9 +36,10 @@ import net.bluemind.core.client.mailshare.MailshareClient;
 import net.bluemind.core.client.system.SystemClient;
 import net.bluemind.core.client.user.UserClient;
 
-public class Application {
+public class CopyToTest {
 
-
+	private static final String UESR_TEST_PASS = "mnp42qry";
+	private static final String USER_TEST = "n.dumont";
 	private CalendarClient sCalClient = null;
 	private MailClient sMailClient = null;
 	private BookClient sBookClient = null;
@@ -77,7 +78,7 @@ public class Application {
 	private SystemClient dsystemClient = null;
 
 	public static void main(String[] args) throws Exception {
-		Application app = new Application();
+		CopyToTest app = new CopyToTest();
 		app.run();
 		// System.out.println("�a marche");
 	}
@@ -112,121 +113,106 @@ public class Application {
 		LinkedList<String> listtoUpdated = new LinkedList<String>();
 		String next = null;
 		// first create all user and in list to synchro calendar after
-		List<User> users = getUser(sUserClient, sadmin0Pass, domaine);
-		for (User sUser : users) {
-			System.out.println("migrate " + sUser.getDisplayName() + "? Y/N/S");
-			next = in.nextLine();
-			if (next.equals("N")) {
-				continue;
-			} else if (next.equals("S") || next.equals("")) {
-				break;
-			}
-//			 String savePass = getcryptPass(sUser, sUserClient, sadmin0Pass);
+		User sUser = getUser(USER_TEST, sUserClient, sadmin0Pass, domaine);
+		System.out.println("migrate " + sUser.getDisplayName() + "? Y/N/S");
 
-			System.out.println(sUser.getDisplayName());
-			User dUser = getUser(sUser.getLogin(), dUserClient, dadmin0Pass, domaine);
-			if (dUser == null) {
-				dUser = createUser(sUser, dUserClient, dadmin0Pass, ddomain,
-						dhost);
-			}
-			// update old pass
-			updatepass(sUser, sUserClient, sadmin0Pass, "12345");
-			listtoUpdated.add(dUser.getDefaultEmail());
+		System.out.println(sUser.getDisplayName());
+		User dUser = getUser(sUser.getLogin(), dUserClient, dadmin0Pass,
+				domaine);
+		if (dUser == null) {
+			dUser = createUser(sUser, dUserClient, dadmin0Pass, ddomain, dhost);
 		}
-		System.out.println("migrate user ended");
-//		for (String mailUset : listtoUpdated) {
-//
-//			importCalendar(mailUset, dCalClient, dadmin0Pass,
-//					exportCalendar(mailUset, sCalClient, sadmin0Pass));
-//		}
-		System.out.println("migrate calendar ended");
 
-//		for (String mailUset : listtoUpdated) {
-//
-//			List<net.bluemind.core.api.contact.Folder> folds = getAllFolder(
-//					mailUset, sBookClient, sadmin0Pass);
-//			for (net.bluemind.core.api.contact.Folder sf : folds) {
-//				if (sf.isWritable()) {
-//					net.bluemind.core.api.contact.Folder df = findFolder(
-//							mailUset, dBookClient, dadmin0Pass, sf.getName());
-//					importFolder(
-//							mailUset,
-//							dBookClient,
-//							dadmin0Pass,
-//							df,
-//							exportFolder(mailUset, sBookClient, sadmin0Pass, sf));
-//				}
-//			}
-//		}
+		System.out.println("migrate user ended");
+
+		// importCalendar(USER_TEST, dCalClient, dadmin0Pass,
+		// exportCalendar(USER_TEST, sCalClient, sadmin0Pass));
+		//
+		// System.out.println("migrate calendar ended");
+
+		List<net.bluemind.core.api.contact.Folder> folds = getAllFolder(
+				USER_TEST, sBookClient, sadmin0Pass);
+		for (net.bluemind.core.api.contact.Folder sf : folds) {
+			if (sf.isWritable()) {
+				net.bluemind.core.api.contact.Folder df = findFolder(USER_TEST,
+						dBookClient, dadmin0Pass, sf.getName());
+				if (df != null) {
+					importFolder(
+							USER_TEST,
+							dBookClient,
+							dadmin0Pass,
+							df,
+							exportFolder(USER_TEST, sBookClient, sadmin0Pass,
+									sf));
+				}
+			}
+		}
 		System.out.println("migrate contact  ended");
 
-		for (String mailUser : listtoUpdated) {
+		session = Session.getDefaultInstance(System.getProperties(), null);
 
-			session = Session.getDefaultInstance(System.getProperties(), null);
+		sourcestore = session.getStore("imap");
+		System.out.println("open on local");
+		String intputname;
+		String inputPas;
+		intputname = USER_TEST + "@" + domaine;
+		inputPas = UESR_TEST_PASS;
+		sourcestore.connect(sHost, intputname, inputPas);
+		System.out.println("open on dest");
+		deststore = session.getStore("imap");
+		intputname = USER_TEST + "@" + domaine;
+		inputPas = "test";
 
-			sourcestore = session.getStore("imap");
-			System.out.println("open on local");
-			String intputname;
-			String inputPas;
-			intputname = mailUser;
-			inputPas = "12345";
-			sourcestore.connect(sHost, intputname, inputPas);
-			System.out.println("open on dest");
-			deststore = session.getStore("imap");
-			intputname = mailUser;
-			inputPas = "12345";
+		deststore.connect(dHost, intputname, inputPas);
 
-			deststore.connect(dHost, intputname, inputPas);
-
-			// Get a handle on the default folder
-			sourcefolder = sourcestore.getDefaultFolder();
-			for (Folder f : sourcefolder.list()) {
-				// sourcefolder = sourcestore.getFolder("INBOX");
-				if (f.getName().equals("Autres utilisateurs")
-						|| f.getName().equals("Dossiers partagés")) {
-					continue;
-				}
-				copiesubFolder(f);
+		// Get a handle on the default folder
+		sourcefolder = sourcestore.getDefaultFolder();
+		for (Folder f : sourcefolder.list()) {
+			// sourcefolder = sourcestore.getFolder("INBOX");
+			if (f.getName().equals("Autres utilisateurs")
+					|| f.getName().equals("Dossiers partagés")) {
+				continue;
 			}
+			copiesubFolder(f);
 		}
 
-		String mailbox = "";
-		boolean cont = true;
-		System.out.println("other mb?");
-		mailbox = in.nextLine();
-		if (mailbox.equals("")) {
-			cont = false;
-		}
-		while (cont) {
-
-			session = Session.getDefaultInstance(System.getProperties(), null);
-
-			sourcestore = session.getStore("imap");
-			System.out.println("open on local");
-			String intputname;
-			String inputPas;
-			intputname = "admin@" + domaine;
-			inputPas = sadmindPass;
-			sourcestore.connect(sHost, intputname, inputPas);
-			System.out.println("open on dest");
-			deststore = session.getStore("imap");
-			intputname = "admin@" + domaine;
-			inputPas = dadmindPass;
-
-			deststore.connect(dHost, intputname, inputPas);
-
-			// Get a handle on the default folder
-			sourcestore.getPersonalNamespaces();
-			sourcefolder = sourcestore
-					.getFolder("Dossiers partagés/" + mailbox);
-			copiesubFolder(sourcefolder);
-			System.out.println("other mb?");
-			mailbox = in.nextLine();
-			if (mailbox.equals("")) {
-				cont = false;
-			}
-
-		}
+		// String mailbox = "";
+		// boolean cont = true;
+		// System.out.println("other mb?");
+		// mailbox = in.nextLine();
+		// if (mailbox.equals("")) {
+		// cont = false;
+		// }
+		// while (cont) {
+		//
+		// session = Session.getDefaultInstance(System.getProperties(), null);
+		//
+		// sourcestore = session.getStore("imap");
+		// System.out.println("open on local");
+		// // String intputname;
+		// // String inputPas;
+		// intputname = "admin@" + domaine;
+		// inputPas = sadmindPass;
+		// sourcestore.connect(sHost, intputname, inputPas);
+		// System.out.println("open on dest");
+		// deststore = session.getStore("imap");
+		// intputname = "admin@" + domaine;
+		// inputPas = dadmindPass;
+		//
+		// deststore.connect(dHost, intputname, inputPas);
+		//
+		// // Get a handle on the default folder
+		// sourcestore.getPersonalNamespaces();
+		// sourcefolder = sourcestore
+		// .getFolder("Dossiers partagés/" + mailbox);
+		// copiesubFolder(sourcefolder);
+		// System.out.println("other mb?");
+		// mailbox = in.nextLine();
+		// if (mailbox.equals("")) {
+		// cont = false;
+		// }
+		//
+		// }
 
 	}
 
@@ -235,7 +221,7 @@ public class Application {
 		AccessToken token = calClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
-			AccessToken asUser = calClient.sudo(token, user);
+			AccessToken asUser = calClient.sudo(token, user + "@" + domaine);
 			return calClient.exportICS(asUser, null);
 		} catch (AuthFault e) {
 			// TODO Auto-generated catch block
@@ -255,7 +241,7 @@ public class Application {
 		AccessToken token = calClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
-			AccessToken asUser = calClient.sudo(token, user);
+			AccessToken asUser = calClient.sudo(token, user + "@" + domaine);
 			calClient.importICS(asUser, ics);
 		} catch (AuthFault e) {
 			// TODO Auto-generated catch block
@@ -274,7 +260,7 @@ public class Application {
 		AccessToken token = bookClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
-			AccessToken asUser = bookClient.sudo(token, user);
+			AccessToken asUser = bookClient.sudo(token, user + "@" + domaine);
 			return bookClient.exportFolderVcards(asUser, f.getId());
 		} catch (AuthFault e) {
 			// TODO Auto-generated catch block
@@ -294,7 +280,7 @@ public class Application {
 		AccessToken token = bookClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
-			AccessToken asUser = bookClient.sudo(token, user);
+			AccessToken asUser = bookClient.sudo(token, user + "@" + domaine);
 			if (vcard != null) { // clear null value
 				vcard = vcard.replaceAll(",null", "");
 				vcard = vcard.replaceAll("null,", "");
@@ -321,7 +307,7 @@ public class Application {
 		AccessToken token = bookClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
-			AccessToken asUser = bookClient.sudo(token, user);
+			AccessToken asUser = bookClient.sudo(token, user + "@" + domaine);
 			FolderQuery q = new FolderQuery();
 			q.setName(folderName);
 			q.setOwner(asUser.getUserId());
@@ -347,7 +333,7 @@ public class Application {
 		AccessToken token = bookClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
-			AccessToken asUser = bookClient.sudo(token, user);
+			AccessToken asUser = bookClient.sudo(token, user + "@" + domaine);
 			return bookClient.findFolders(asUser);
 		} catch (AuthFault e) {
 			// TODO Auto-generated catch block
@@ -369,7 +355,7 @@ public class Application {
 
 		try {
 
-			dUser.setPassword("12345");
+			dUser.setPassword(UESR_TEST_PASS);
 			dUser.setPasswordEncrypted(false);
 			userClient.update(token, dUser);
 		} catch (AuthFault e) {
@@ -384,7 +370,8 @@ public class Application {
 
 	}
 
-	private List<User> getUser(UserClient userClient, String password,String domain) {
+	private List<User> getUser(UserClient userClient, String password,
+			String domain) {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		UserQuery q = new UserQuery();
@@ -407,7 +394,8 @@ public class Application {
 		return null;
 	}
 
-	private User getUser(String user, UserClient userClient, String password, String domain) {
+	private User getUser(String user, UserClient userClient, String password,
+			String domain) {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		UserQuery q = new UserQuery();
@@ -474,9 +462,10 @@ public class Application {
 		AccessToken token = userClient.login("admin0@global.virt", password,
 				"Migration");
 		try {
+			user.setPhotoId(null);
 			user.setDomain(domain);
 			user.setMailServer(host);
-			user.setPassword("12345");
+			user.setPassword("test");
 			user.setPasswordEncrypted(false);
 
 			return userClient.create(token, user);
