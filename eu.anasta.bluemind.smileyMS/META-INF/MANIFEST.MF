@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: eu.anasta.bluemind.SmileyMS
+Bundle-SymbolicName: eu.anasta.bluemind.smileyMS;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: eu.anasta.bluemind.smileyms.Activator
+Bundle-Vendor: Anasta sa
+Require-Bundle: org.eclipse.core.runtime,
+ net.bluemind.lmtp,
+ net.bluemind.core.common,
+ org.apache.mime4j
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
