@@ -26,11 +26,16 @@ import org.apache.james.mime4j.message.BodyPart;
 import org.apache.james.mime4j.message.DefaultMessageBuilder;
 import org.apache.james.mime4j.message.DefaultMessageWriter;
 
-public class ImipSmileyMsFilter implements IMessageFilter {
+/**
+ * @author Dumont
+ *
+ */
+public class SmileyMsFilter implements IMessageFilter {
 
 	@Override
 	public Message filter(LmtpEnvelope env, Message message, long messageSize)
 			throws FilterException {
+		// traitement uniquement des multipart 
         if (message.isMultipart()){
         	replacePart((Multipart) message.getBody());
         }
@@ -51,9 +56,11 @@ public class ImipSmileyMsFilter implements IMessageFilter {
     private void replacePart(Multipart multipart) {
         final int count = multipart.getCount();
         for (int i = 0; i < count; i++) {
+        	// parcour de tout les part et traitement des Text body
         	Entity e =  multipart.getBodyParts().get(i);
         	if (e.getBody() instanceof TextBody){
         		String text = getValue(e.getBody());
+        		// si la font windings detecter ony remplace tout les span j, k ou l par le smiley correspondant
         		if (text.contains("font-family:Wingdings")){
         			text = text.replaceAll("(?s)(?m)(?i)<span[^>]*font-family\\s*:\\s*Wingdings[^>]*>j<\\/span>", ":-)");
         			text = text.replaceAll("(?s)(?m)(?i)<span[^>]*font-family\\s*:\\s*Wingdings[^>]*>k<\\/span>", ":-(");
@@ -118,16 +125,6 @@ public class ImipSmileyMsFilter implements IMessageFilter {
 		return null;
     }
     
-    
-    public static void main(String[] args) throws FileNotFoundException, MimeException, IOException, FilterException {
-    	   final MessageBuilder builder = new DefaultMessageBuilder();
-           final Message message = builder.parseMessage(new FileInputStream("c:\\test.eml"));
-    	ImipSmileyMsFilter filtre = new ImipSmileyMsFilter();
-    	Message m =  filtre.filter(null, message, 0);
-        MessageWriter writer = new DefaultMessageWriter();
-        writer.writeMessage(m, new FileOutputStream("c:\\test2.eml"));
-    	   
-	}
-
+   
 
 }

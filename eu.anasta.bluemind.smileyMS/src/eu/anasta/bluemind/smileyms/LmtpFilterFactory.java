@@ -18,7 +18,7 @@ public class LmtpFilterFactory implements ILmtpFilterFactory {
 	@Override
 	public IMessageFilter getEngine() {
 		// TODO Auto-generated method stub
-		return new ImipSmileyMsFilter();
+		return new SmileyMsFilter();
 	}
 
 }
