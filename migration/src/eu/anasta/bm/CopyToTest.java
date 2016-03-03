@@ -38,8 +38,8 @@ import net.bluemind.core.client.user.UserClient;
 
 public class CopyToTest {
 
-	private static final String UESR_TEST_PASS = "mnp42qry";
-	private static final String USER_TEST = "n.dumont";
+	private static final String UESR_TEST_PASS = "test";
+	private static final String USER_TEST = "test";
 	private CalendarClient sCalClient = null;
 	private MailClient sMailClient = null;
 	private BookClient sBookClient = null;
